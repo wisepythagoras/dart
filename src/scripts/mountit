@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo mount -o loop floppy.img floppy | echo "Unable to mount image."
+sudo rm -rf floppy/kernel            | echo "Unable to delete previous state."
+sudo cp -rf kernel floppy/           | echo "Unable to copy new state."

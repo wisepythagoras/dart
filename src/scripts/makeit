@@ -1,0 +1,96 @@
+#!/bin/bash
+# To make a bash script executable, do:
+# ~$ chmod +x <script_name>
+# And then just execute it like ./<script_name>
+
+export TOOLCHAIN=./toolchain/bin
+export SOURCE=./src
+export OBJS=./objs
+export INCLUDE=${SOURCE}/include
+export GCCARGS="-I${INCLUDE} -nostdlib -nostdinc -fno-builtin -std=c99"
+
+mkdir -p ${OBJS}
+
+echo "Compilation started"
+sleep 0.5
+
+echo "  Compiling Assembly code"
+echo "  --> start.asm"
+${TOOLCHAIN}/nasm -felf -o ${OBJS}/loader.o ${SOURCE}/arch/x86/boot/start.asm
+echo "  --> gdt.s"
+${TOOLCHAIN}/nasm -felf -o ${OBJS}/gdts.o ${SOURCE}/arch/x86/gdt.s
+echo "  --> interrupt.s"
+${TOOLCHAIN}/nasm -felf -o ${OBJS}/interrupt.o ${SOURCE}/arch/x86/interrupt.s
+echo "  --> process.s"
+${TOOLCHAIN}/nasm -felf -o ${OBJS}/process.o ${SOURCE}/arch/x86/process.s
+echo "  Done."
+
+echo "  Compiling C code"
+echo "  --> main.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/kernel.o -c ${SOURCE}/main.c ${GCCARGS}
+
+echo "  --> gdt.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/gdt.o -c ${SOURCE}/gdt.c ${GCCARGS}
+
+echo "  --> isr.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/isr.o -c ${SOURCE}/isr.c ${GCCARGS}
+
+echo "  --> timer.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/timer.o -c ${SOURCE}/timer.c ${GCCARGS}
+
+echo "  --> port/outb.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/outb.o -c ${SOURCE}/arch/x86/port/outb.c ${GCCARGS}
+
+echo "  --> port/inpb.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/inpb.o -c ${SOURCE}/arch/x86/port/inpb.c ${GCCARGS}
+
+echo "  --> port/inpw.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/inpw.o -c ${SOURCE}/arch/x86/port/inpw.c ${GCCARGS}
+
+echo "  --> arch/cpuid.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/inpw.o -c ${SOURCE}/arch/x86/cpuid.c ${GCCARGS}
+
+echo "  --> screen/screen.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/screen.o -c ${SOURCE}/arch/x86/screen.c ${GCCARGS}
+
+echo "  --> screen/ctype.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/ctype.o -c ${SOURCE}/screen/ctype.c ${GCCARGS}
+
+echo "  --> screen/printf.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/printf.o -c ${SOURCE}/screen/printf.c ${GCCARGS}
+
+echo "  --> screen/stdio.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/stdio.o -c ${SOURCE}/screen/stdio.c ${GCCARGS}
+
+echo "  --> screen/stdlib.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/stdlib.o -c ${SOURCE}/screen/stdlib.c ${GCCARGS}
+
+echo "  --> screen/string.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/string.o -c ${SOURCE}/screen/string.c ${GCCARGS}
+
+echo "  --> string/strlen.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/strlen.o -c ${SOURCE}/string/strlen.c ${GCCARGS}
+
+echo "  --> string/strcpy.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/strcpy.o -c ${SOURCE}/string/strcpy.c ${GCCARGS}
+
+echo "  --> string/strcmp.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/strcmp.o -c ${SOURCE}/string/strcmp.c ${GCCARGS}
+
+echo "  --> string/strcat.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/strcat.o -c ${SOURCE}/string/strcat.c ${GCCARGS}
+
+echo "  --> string/memset.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/memset.o -c ${SOURCE}/string/memset.c ${GCCARGS}
+
+echo "  --> string/memcpy.c"
+${TOOLCHAIN}/i386-elf-gcc -o ${OBJS}/memcpy.o -c ${SOURCE}/string/memcpy.c ${GCCARGS}
+# TODO: Put the rest of the modules that need to be
+#       be compiled here.
+echo "  Done."
+echo "Done."
+
+echo "Linking the object code"
+${TOOLCHAIN}/i386-elf-ld -T ${SOURCE}/linker.ld -o kernel-i386 ${OBJS}/loader.o ${OBJS}/kernel.o ${OBJS}/gdt.o ${OBJS}/gdts.o ${OBJS}/interrupt.o ${OBJS}/isr.o ${OBJS}/timer.o ${OBJS}/screen.o ${OBJS}/inpb.o ${OBJS}/inpw.o ${OBJS}/outb.o ${OBJS}/string.o ${OBJS}/stdlib.o ${OBJS}/ctype.o ${OBJS}/stdio.o \
+${OBJS}/strcpy.o ${OBJS}/strlen.o ${OBJS}/strcmp.o ${OBJS}/strcat.o ${OBJS}/memset.o ${OBJS}/memcpy.o
+echo "Done."

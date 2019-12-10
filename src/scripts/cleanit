@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# set -o verbose
+rm -fr *~  | echo "No saved state files in 'root'."
+rm -fr screen/*~ | echo "No saved state files in 'root/screen'."
+rm -fr port/*~   | echo "No saved state files in 'root/port'."
+rm -fr *.o | echo "No object files found to delete."
+rm -i -fr kernel | echo "No kernel executable found." 
